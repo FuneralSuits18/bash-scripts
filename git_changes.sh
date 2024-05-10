@@ -38,7 +38,8 @@ check_unpushed() {
 
 # Check directories recursively
 check_directories() {
-    local dir="$1"
+    local dir=$(realpath "$1")
+    local depth="$2"
 
     # Check if the current directory is a Git repository
     if is_git_repo "$dir"; then
@@ -47,11 +48,13 @@ check_directories() {
     fi
 
     # Recursively check subdirectories
-    for subdir in "$dir"/*; do
-        if [ -d "$subdir" ]; then
-            check_directories "$subdir"
-        fi
-    done
+    if [ "$depth" -gt 0 ]; then
+        for subdir in "$dir"/*; do
+            if [ -d "$subdir" ]; then
+                check_directories "$subdir" $((depth-1))
+            fi
+        done
+    fi
 }
 
 # Usage
@@ -60,4 +63,4 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-check_directories "$1"
+check_directories "$1" 2
